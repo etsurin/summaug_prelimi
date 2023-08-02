@@ -25,7 +25,7 @@ python summ.py
 
 After the two steps, you should have two txt files named summ_aug.txt and aeda.aug.txt in your path. 
 
-The data is also available at [here](https://drive.google.com/file/d/1MSJob6uRjWEcNTs3WwHXSyNmomd2g9ps/view?usp=sharing), unzip them to the same path as the code files. 
+The data is also available [here](https://drive.google.com/file/d/1MSJob6uRjWEcNTs3WwHXSyNmomd2g9ps/view?usp=sharing), unzip them to the same path as the code files. 
 
 ## Train a classification model
 
