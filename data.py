@@ -77,12 +77,28 @@ class IMDB_BART(Dataset):
     def __getitem__(self, item):
         return self.data[item]
     
-def get_aug_data(filename, train_data):
+def get_aug_data(filename, train_data, data_id = None):
     f = open('{}.txt'.format(filename),'r')
-    data = f.read()
-    data = data.split('[EOSUMM]')
-    print(len(data))
-    for id,item in enumerate(data):
-        train_data['text'].append(item)
-        train_data['label'].append(train_data['label'][id])
+    aug_data = f.read()
+    aug_data = aug_data.split('[EOSUMM]')
+    if data_id is not None:
+        for id_train,id_raw in enumerate(data_id):
+            train_data['text'].append(aug_data[id_raw])
+            train_data['label'].append(train_data['label'][id_train])
+    else:
+        for id,item in enumerate(aug_data):
+            train_data['text'].append(item)
+            train_data['label'].append(train_data['label'][id])
     return train_data
+
+def sample(data, data_id):
+    sampled_data = dict()
+    sampled_data['text'] = list()
+    sampled_data['label'] = list()
+    pos_count = 0
+    for id in data_id:
+        if data['label'][id] == 1:
+            pos_count += 1
+        sampled_data['text'].append(data['text'][id])
+        sampled_data['label'].append(data['label'][id])
+    return pos_count/len(data_id), sampled_data

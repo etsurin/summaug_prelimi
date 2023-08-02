@@ -4,6 +4,7 @@ from transformers.utils import logging
 from transformers import RobertaTokenizer, RobertaForSequenceClassification, AutoModelForSequenceClassification, AutoTokenizer
 import math
 from sklearn.model_selection import train_test_split
+from sklearn.utils import shuffle
 import torch.optim as optim
 import random
 import evaluate
@@ -30,6 +31,7 @@ def get_lambda(step, all_steps, warmup_steps, type):
             0.0, float(all_steps - step) / float(max(1, all_steps - warmup_steps))
         )
 
+
 def train(args):
     setup_seed(args.seed)
     tokenizer = AutoTokenizer.from_pretrained(args.initial_point)
@@ -38,13 +40,22 @@ def train(args):
         tokenizer.add_special_tokens({"pad_token": "<|endoftext|>"})
         tokenizer.padding_side = 'left'
         model.config.pad_token_id = model.config.eos_token_id
-    device = 'cuda:{}'.format(args.gpu_id) if torch.cuda.is_available else 'cpu'
+    device = 'cuda:{}'.format(args.gpu_id) if torch.cuda.is_available else 'cpu'    
     raw_data = datasets.load_dataset('imdb', split ='train')
-    train_data, val_data = train_test_split(raw_data,test_size = args.test_size)
+    train_data, val_data = train_test_split(raw_data,test_size = args.test_size, random_state = 123)
+    shuffle_id_train = shuffle(np.arange(len(train_data['text'])), random_state=123)
+    shuffle_id_val = shuffle(np.arange(len(val_data['text'])), random_state=123)
+    data_id = None
+    if args.n_sample is not None:
+        data_id = shuffle_id_train[:args.n_sample]
+        pos_r, train_data = sample(train_data, data_id)
+        val_id = shuffle_id_val[:int(args.n_sample*args.test_size/(1-args.test_size))]
+        _, val_data = sample(val_data, val_id)
+        # print(pos_r)
     test_data = datasets.load_dataset('imdb', split ='test')
     test_data = test_data[:]
     if args.augfile is not None:
-        train_data = get_aug_data(args.augfile, train_data)
+        train_data = get_aug_data(args.augfile, train_data, data_id)
     testset = IMDBDataset(tokenizer,  test_data, args.max_len)
     trainset = IMDBDataset(tokenizer,  train_data, args.max_len)
     valset = IMDBDataset(tokenizer,  val_data, args.max_len)
@@ -67,6 +78,7 @@ def train(args):
     print_loss = True
     max_acc = 0.0
     PATH = args.ptr_model_path
+    model_file_name = PATH + '/best_model_gpu_{}.pth'.format(args.gpu_id)
     if not os.path.exists(PATH):
         os.mkdir(PATH)
     train_loss = 0.0
@@ -121,12 +133,12 @@ def train(args):
         print('epoch{}, valid_loss:{}, acc:{}'.format(epoch+1,val_loss,correct_num/total_num))
         if correct_num/total_num > max_acc:
             max_acc = correct_num/total_num
-            torch.save(model.state_dict(), PATH + '/best_model.pth')
+            torch.save(model.state_dict(), model_file_name)
             print('*******best model updated*******')
 
     correct_num = 0
     total_num = 0
-    model.load_state_dict(torch.load(PATH + '/best_model.pth'))
+    model.load_state_dict(torch.load(model_file_name))
     with torch.no_grad():
         for id,item in tqdm(enumerate(testloader)):
             model.eval()
@@ -139,6 +151,8 @@ def train(args):
             total_num += outputs.logits.size(0)
             correct_num += (preds.cpu() == label).sum().item()
     print('acc:{}'.format(correct_num/total_num))
+    with open('results_{}.txt'.format(args.gpu_id), 'a') as f:
+        f.write(str(args)+'\n'+str(correct_num/total_num))
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--gpu_id', type=int, default = 0)
@@ -150,6 +164,7 @@ def main():
     parser.add_argument('--seed', type=int, default=123)
     parser.add_argument('--lr', type=float, default=1e-5)
     parser.add_argument('--test_size', type=float, default=0.1)
+    parser.add_argument('--n_sample', type=int, default=None)
     parser.add_argument('--train_bz', type=int, default=4)
     parser.add_argument('--val_bz', type=int, default=10)
     parser.add_argument('--acc_step', type=int, default=16)

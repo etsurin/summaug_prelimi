@@ -1,5 +1,5 @@
-# AEDA: An Easier Data Augmentation Technique for Text classification
-# Akbar Karimi, Leonardo Rossi, Andrea Prati
+# This code for implementing AEDA on imdb dataset, it's modified based on https://github.com/akkarimi/aeda_nlp/blob/master/code/aeda.py
+
 
 import random
 import datasets
@@ -7,17 +7,8 @@ from sklearn.model_selection import train_test_split
 from data import *
 
 random.seed(123)
-
-def setup_seed(seed):
-    np.random.seed(seed)
-    torch.manual_seed(seed)
-    torch.cuda.manual_seed_all(seed)
-    torch.cuda.manual_seed(seed)
-
-
-setup_seed(123)
 raw_data = datasets.load_dataset('imdb', split ='train')
-train_data, val_data = train_test_split(raw_data,test_size = 0.1)
+train_data, val_data = train_test_split(raw_data,test_size = 0.1,random_state=123)
 
 PUNCTUATIONS = ['.', ',', '!', '?', ';', ':']
 NUM_AUGS = 1
@@ -50,7 +41,7 @@ def main(data):
 		# 	print(item_aug)
 		data_aug.append(item_aug)
 
-	with open( 'aeda_aug.txt', 'w') as f:
+	with open('aeda_aug.txt', 'w') as f:
 		f.write('[EOSUMM]'.join(data_aug))
 
 main(train_data)
