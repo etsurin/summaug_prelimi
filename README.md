@@ -6,6 +6,6 @@ This is the repository for summaug, the final course report of DL basics, 2023 s
 
 run the following command to build up environment
 
-`
+```
 pip install -r requirements.txt
-`
+```
