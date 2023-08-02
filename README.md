@@ -43,9 +43,9 @@ respectively
 
 When training with part of the dataset, add 
 ```
---n_sample [The number of training samples] to the original data. 
+--n_sample [The number of training samples]
 ```
-
+ to the original command
 ### Tuning hyperparameters
 
 You can change training hyperparameters by simply adding commands, refer to the main function of roberta_main.py for more information
