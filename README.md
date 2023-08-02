@@ -10,7 +10,7 @@ run the following command to build up environment
 pip install -r requirements.txt
 ```
 
-## Generate augmented data
+## Generate augmented pseudo samples
 
 For [AEDA](https://aclanthology.org/2021.findings-emnlp.234/) method, run the following command 
 ```
@@ -25,4 +25,38 @@ python summ.py
 
 After the two steps, you should have two txt files named summ_aug.txt and aeda.aug.txt in your path. 
 
-## Training a classification model
+## Train a classification model
+
+To train with original data, run
+```
+python roberta_main.py
+```
+
+To train with AEDA augmented and SUMMAUG augmented data, run
+```
+python roberta_main.py --augfile aeda_aug
+```
+```
+python roberta_main.py --augfile summ_aug
+```
+respectively
+
+When training with part of the dataset, add 
+```
+--n_sample [The number of training samples] to the original data. 
+```
+
+### Tuning hyperparameters
+
+You can change training hyperparameters by simply adding commands, refer to the main function of roberta_main.py for more information
+
+## Check experiments results
+
+run the following command
+
+```
+bash run_group.sh
+```
+
+You should get the same results as the report . 
+
