@@ -52,7 +52,7 @@ When training with part of the dataset, add
 
 You can change training hyperparameters by simply adding commands, refer to the main function of roberta_main.py for more information
 
-## Check experiments results
+## Check experiment results
 
 run the following command
 
