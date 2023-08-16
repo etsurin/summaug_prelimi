@@ -114,9 +114,9 @@ def train(args):
         val_counter = 0
         correct_num = 0
         total_num = 0
+        model.eval()
         with torch.no_grad():
             for id,item in tqdm(enumerate(valloader)):
-                model.eval()
                 data,label = item[0],item[1]
                 data['input_ids'] = data['input_ids'].to(device)
                 data['attention_mask'] = data['attention_mask'].to(device)
@@ -139,9 +139,9 @@ def train(args):
     correct_num = 0
     total_num = 0
     model.load_state_dict(torch.load(model_file_name))
+    model.eval()
     with torch.no_grad():
         for id,item in tqdm(enumerate(testloader)):
-            model.eval()
             data,label = item[0],item[1]
             data['input_ids'] = data['input_ids'].to(device)
             data['attention_mask'] = data['attention_mask'].to(device)
